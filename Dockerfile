@@ -1,15 +1,24 @@
-FROM python:3.10
+# Step 1: Use an official Python runtime as a parent image
+FROM python:3.10-slim
 
-WORKDIR /data
+# Step 2: Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1  # Prevents Python from writing .pyc files
+ENV PYTHONUNBUFFERED 1  # Ensures logs are immediately flushed
 
-RUN apt-get update && apt-get install -y python3-distutils python3-apt && rm -rf /var/lib/apt/lists/*
+# Step 3: Set the working directory in the container
+WORKDIR /app
 
-RUN pip install --upgrade pip setuptools
+# Step 4: Copy the requirements file into the container
+COPY requirements.txt /app/
 
-RUN pip install django==3.2
+# Step 5: Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Step 6: Copy the Django project files into the container
+COPY . /app/
 
+# Step 7: Expose the application port
 EXPOSE 8000
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Step 8: Define the command to run the application
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "myproject.wsgi:application"]
