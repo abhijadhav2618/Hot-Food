@@ -8,18 +8,28 @@ ENV PYTHONUNBUFFERED 1
 # Step 3: Set working directory
 WORKDIR /app
 
-# Step 4: Install system dependencies (if needed)
-RUN apt-get update && apt-get install -y libpq-dev gcc python3-dev && rm -rf /var/lib/apt/lists/*
+# Step 4: Install system dependencies (for psycopg2, mysqlclient, etc.)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    gcc \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Step 5: Copy requirements.txt and install dependencies
+# Step 5: Copy requirements.txt
 COPY requirements.txt /app/
+
+# Step 6: Debugging Step (Verify File Exists)
+RUN ls -l /app/ && cat /app/requirements.txt
+
+# Step 7: Upgrade pip and Install Dependencies
 RUN pip install --upgrade pip setuptools wheel && pip install --no-cache-dir -r requirements.txt
 
-# Step 6: Copy Django project files
+# Step 8: Copy Django Project Files
 COPY . /app/
 
-# Step 7: Expose port
+# Step 9: Expose Port
 EXPOSE 8000
 
-# Step 8: Run the application
+# Step 10: Run the Application
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "src.wsgi:application"]
